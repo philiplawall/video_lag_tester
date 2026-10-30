@@ -34,6 +34,16 @@ openFPGALoader -b tangnano4k -f firmware\\video_lag_tester_720p60.fs
 Double click on "load_720p.cmd"
 
 
+## Buttons
+The two push buttons on the Tang Nano 4K select the measuring range and reset the statistics:
+
+| Button | FPGA pin | Function |
+|---|---|---|
+| KEY[0] | 14 | Toggle the measuring range: fine (lag up to 333 ms, shown as `XXX.XX ms`) or coarse (lag up to 2.5 s, shown as `XXXX.X ms`) |
+| KEY[1] | 15 | Reset min / max / average |
+
+The device starts in the fine range. In the coarse range the test field flashes only every 2.5 s, so the average needs about 40 s to settle. Changing the range also resets the statistics.
+
 ## Schematic and how to build
 ![](images/schematics.jpg)
 ![](images/pcb_front.jpg)\

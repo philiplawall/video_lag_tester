@@ -6,7 +6,11 @@
 `define MAX_BCDCOUNT 20'h9_99_99
 // clock.frquency / CLOCK_DIVIDER = 1MHz
 `define CLOCK_DIVIDER 27
+// frames between two flashes of the test field. The lag must be shorter than
+// this, otherwise the reading aliases (60 Hz: 20 = 333 ms, 150 = 2.5 s)
 `define FRAME_COUNTER 20
+`define FRAME_COUNTER_COARSE 150
+// frames the test field stays on
 `define FRAME_ON_COUNT 15
 `define LAGLINE_SIZE 512
 `define RESLINE_SIZE 12'd136

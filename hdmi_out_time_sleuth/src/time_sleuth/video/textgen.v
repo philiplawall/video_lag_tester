@@ -9,6 +9,7 @@ module textgen(
     input [11:0] visible_counterX,
     input [11:0] visible_counterY,
     input [79:0] bcdcount,
+    input range_coarse,
     output [`RESLINE_SIZE-1:0] resolution_line,
     output reg [`LAGLINE_SIZE-1:0] lagdisplay_line_out 
 );
@@ -22,6 +23,15 @@ module textgen(
 
     reg [7:0] char_addr;
     reg [7:0] char_data;
+
+    /*
+        Each value occupies 6 character slots. The decimal point is part of
+        the static label bitmap in slot 4 ("XXX.XX", fine range). In the
+        coarse range the second digit is written over that point and a point
+        glyph goes into slot 5 instead ("XXXX.X"). The glyph is the same
+        single pixel the bitmap uses.
+    */
+    wire [7:0] dot_row = (lagdisplay_addr == 4'd12) ? 8'b0001_0000 : 8'b0000_0000;
 
     char_rom char_rom_inst(
         .clock(clock),
@@ -100,7 +110,12 @@ module textgen(
                     idwc();
                 end
                 6: begin
-                    lagdisplay_line_out[327:320] <= char_data;
+                    if (range_coarse) begin
+                        lagdisplay_line_out[335:328] <= char_data;
+                        lagdisplay_line_out[327:320] <= dot_row;
+                    end else begin
+                        lagdisplay_line_out[327:320] <= char_data;
+                    end
                     char_addr <= lagdisplay_addr + (bcdcount[19:16] << 4);
                     idwc();
                 end
@@ -142,7 +157,12 @@ module textgen(
                     idwc();
                 end
                 15: begin
-                    lagdisplay_line_out[207:200] <= char_data;
+                    if (range_coarse) begin
+                        lagdisplay_line_out[215:208] <= char_data;
+                        lagdisplay_line_out[207:200] <= dot_row;
+                    end else begin
+                        lagdisplay_line_out[207:200] <= char_data;
+                    end
                     char_addr <= lagdisplay_addr + (bcdcount[39:36] << 4);
                     idwc();
                 end
@@ -185,7 +205,12 @@ module textgen(
                     idwc();
                 end
                 24: begin
-                    lagdisplay_line_out[136:128] <= char_data;
+                    if (range_coarse) begin
+                        lagdisplay_line_out[143:136] <= char_data;
+                        lagdisplay_line_out[135:128] <= dot_row;
+                    end else begin
+                        lagdisplay_line_out[135:128] <= char_data;
+                    end
                     char_addr <= lagdisplay_addr + (bcdcount[59:56] << 4);
                     idwc();
                 end
@@ -228,7 +253,12 @@ module textgen(
                     idwc();
                 end
                 33: begin
-                    lagdisplay_line_out[15:8] <= char_data;
+                    if (range_coarse) begin
+                        lagdisplay_line_out[23:16] <= char_data;
+                        lagdisplay_line_out[15:8] <= dot_row;
+                    end else begin
+                        lagdisplay_line_out[15:8] <= char_data;
+                    end
                     char_addr <= lagdisplay_addr + (bcdcount[79:76] << 4);
                     idwc();
                 end

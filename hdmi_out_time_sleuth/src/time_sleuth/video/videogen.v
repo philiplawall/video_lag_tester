@@ -10,18 +10,22 @@ module videogen(
     input [`RESLINE_SIZE-1:0] resolution_line,
     input [`LAGLINE_SIZE-1:0] lagdisplay_line,
     input state,
+    input range_coarse,
     output reg starttrigger,
     output reg [23:0] data
 );
-    reg [5:0] frameCounter = 0;
+    reg [7:0] frameCounter = 0;
     reg displayFields = 0;
     reg [2:0] metaCounter = 0;
+
+    /* frames between two flashes, selected by the measuring range */
+    wire [7:0] frameLimit = range_coarse ? `FRAME_COUNTER_COARSE : `FRAME_COUNTER;
 
     /* frame counter */
     always @(posedge clock) begin
         if (counterX == videoMode.h_sync + videoMode.h_back_porch
          && counterY == videoMode.v_sync + (state ? videoMode.v_back_porch_2 : videoMode.v_back_porch_1)) begin
-            if (frameCounter < `FRAME_COUNTER - 1 + metaCounter) begin
+            if (frameCounter < frameLimit - 1 + metaCounter) begin
                 frameCounter <= frameCounter + 1'b1;
             end else begin
                 frameCounter <= 0;

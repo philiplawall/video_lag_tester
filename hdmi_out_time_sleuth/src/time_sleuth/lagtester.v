@@ -6,6 +6,7 @@ module lagtester(
 
     
     input SENSOR,
+    input [1:0] KEY, // push buttons on the board, active low
 
     output wire        O_tmds_clk_p,
     output wire        O_tmds_clk_n,
@@ -19,7 +20,7 @@ module lagtester(
     wire sensor_out;
     wire sensor_trigger;
 
-    wire config_changed;
+    wire reset_statistics;
     wire [7:0] config_data;
 
     wire starttrigger;
@@ -36,8 +37,6 @@ module lagtester(
 
 wire clk_serial;
 wire hdmi_rstn;
-
-    wire [4:0] RES_CONFIG = 5'b00001 ;
 
     wire [7:0] DVI_RED;
     wire [7:0] DVI_GREEN;
@@ -90,13 +89,52 @@ hdmi_device hdmi_device (
     );
 
     ///////////////////////////////////////////
-    // config
-    configuration configuration(
+    // buttons (active low, internal pull-up)
+    //   KEY[0]: toggle the measuring range
+    //           fine:   lag < 333 ms, display XXX.XX ms
+    //           coarse: lag < 2.5 s,  display XXXX.X ms
+    //   KEY[1]: reset min / max / average
+    wire key_range_pressed;
+    wire key_reset_pressed;
+    reg range_coarse = 1'b0;
+
+    button_input button_range(
         .clock(clock),
-        .config_in(RES_CONFIG),
-        .config_data(config_data),
-        .config_changed(config_changed)
+        .button_n(KEY[0]),
+        .pressed(key_range_pressed)
     );
+
+    button_input button_reset(
+        .clock(clock),
+        .button_n(KEY[1]),
+        .pressed(key_reset_pressed)
+    );
+
+    always @(posedge clock) begin
+        if (key_range_pressed) begin
+            range_coarse <= ~range_coarse;
+        end
+    end
+
+    // a range change invalidates min / max / average
+    assign reset_statistics = key_range_pressed | key_reset_pressed;
+
+    // The range bit is sent to the video clock domain through the config
+    // byte (data_cross below only transfers on change). startup_done forces
+    // one transfer shortly after power up so both domains agree on the
+    // range before the first key press.
+    reg [19:0] startup_counter = 0;
+    reg startup_done = 1'b0;
+
+    always @(posedge clock) begin
+        if (&startup_counter) begin
+            startup_done <= 1'b1;
+        end else begin
+            startup_counter <= startup_counter + 1'b1;
+        end
+    end
+
+    assign config_data = { 6'b0, startup_done, range_coarse };
 
     ///////////////////////////////////////////
     // measurement
@@ -111,7 +149,8 @@ hdmi_device hdmi_device (
         .clock(clock),
         .reset_counter(reset_counter),
         .sensor_trigger(sensor_trigger),
-        .reset_bcdoutput(config_changed),
+        .reset_bcdoutput(reset_statistics),
+        .range_coarse(range_coarse),
         .bcd_current(bcd_current),
         .bcd_minimum(bcd_minimum),
         .bcd_maximum(bcd_maximum),

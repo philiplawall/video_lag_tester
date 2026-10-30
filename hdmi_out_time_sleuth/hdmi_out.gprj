@@ -21,6 +21,7 @@
         <File path="src/time_sleuth/misc/Binary_to_BCD.v" type="file.verilog" enable="1"/>
         <File path="src/time_sleuth/misc/Flag_CrossDomain.v" type="file.verilog" enable="1"/>
         <File path="src/time_sleuth/misc/bcdcounter.v" type="file.verilog" enable="1"/>
+        <File path="src/time_sleuth/misc/button_input.v" type="file.verilog" enable="1"/>
         <File path="src/time_sleuth/misc/data_cross.v" type="file.verilog" enable="1"/>
         <File path="src/time_sleuth/misc/edge_detect.v" type="file.verilog" enable="1"/>
         <File path="src/time_sleuth/sensor.v" type="file.verilog" enable="1"/>

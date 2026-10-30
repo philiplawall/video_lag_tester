@@ -21,6 +21,7 @@ module video(
     wire [`RESLINE_SIZE-1:0] resolution_line;
     wire [`LAGLINE_SIZE-1:0] lagdisplay_line;
     wire state;
+    wire range_coarse = config_data[0]; // measuring range, crossed from the sensor clock domain
     VideoMode videoMode;
 
     assign videoMode = VIDEO_MODE_720P;//VIDEO_MODE_480P; //VIDEO_MODE_720P;
@@ -66,6 +67,7 @@ module video(
         .visible_counterX(visible_counterX),
         .visible_counterY(visible_counterY),
         .bcdcount(bcdcount),
+        .range_coarse(range_coarse),
         .resolution_line(resolution_line),
         .lagdisplay_line_out(lagdisplay_line)
     );
@@ -80,6 +82,7 @@ module video(
         .resolution_line(resolution_line),
         .lagdisplay_line(lagdisplay_line),
         .state(state),
+        .range_coarse(range_coarse),
         .starttrigger(starttrigger),
         .data({ red, green, blue })
     );

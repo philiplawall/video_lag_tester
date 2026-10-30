@@ -2,7 +2,7 @@
 module bcdcounter(
     input trigger,
     input reset,
-    output [23:0] bcdcount
+    output [27:0] bcdcount
 );
 
     reg [3:0] first;
@@ -11,6 +11,7 @@ module bcdcounter(
     reg [3:0] fourth;
     reg [3:0] fifth;
     reg [3:0] sixth;
+    reg [3:0] seventh;
 
     always @(posedge trigger or posedge reset) begin
         if (reset) begin
@@ -20,6 +21,7 @@ module bcdcounter(
             fourth <= 0;
             fifth <= 0;
             sixth <= 0;
+            seventh <= 0;
         end else if (first == 4'd9) begin // xxxxx9 reached
             first <= 0;
             if (second == 4'd9) begin // xxxx99 reached
@@ -32,6 +34,11 @@ module bcdcounter(
                             fifth <= 0;
                             if (sixth == 4'd9) begin // 999999 reached
                                 sixth <= 0;
+                                if (seventh == 4'd9) begin // 9999999 reached
+                                    seventh <= 0;
+                                end else begin
+                                    seventh <= seventh + 1'b1;
+                                end
                             end else begin
                                 sixth <= sixth + 1'b1;
                             end
@@ -52,7 +59,7 @@ module bcdcounter(
         end
     end
 
-    assign bcdcount = { sixth, fifth, fourth, third, second, first };
+    assign bcdcount = { seventh, sixth, fifth, fourth, third, second, first };
 endmodule
 
 
