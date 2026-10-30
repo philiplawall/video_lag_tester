@@ -56,6 +56,12 @@ This project is created by **Patrik's Retro Tech**. For updates and similar proj
 [Facebook](https://facebook.com/patriksretrotech)
 
 ## Build Firmware
-Use: Gowin FPGA Designer 1.9.8.03 Education
+Use: Gowin FPGA Designer 1.9.8.03 Education (1.9.12.04 works too). In the GUI set the top module to `lagtester` and the Verilog language to SystemVerilog 2017.
+
+From the command line:
+```
+gw_sh hdmi_out_time_sleuth/build.tcl
+```
+The bitstream ends up in `hdmi_out_time_sleuth/impl/pnr/hdmi_out.fs`.
 
 Firmware is based on source code of [Time sleuth](https://github.com/chriz2600/time-sleuth)

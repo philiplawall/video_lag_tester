@@ -10,17 +10,23 @@ There is no software component, no test suite, and no CI. Everything is Verilog/
 
 ## Building and flashing
 
-**Toolchain:** Gowin FPGA Designer **1.9.8.03 Education** (GUI). Open `hdmi_out_time_sleuth/hdmi_out.gprj`, then run Synthesize → Place & Route. Output bitstream lands at `hdmi_out_time_sleuth/impl/pnr/hdmi_out.fs`. The `impl/` directory is not tracked and there is no `.gitignore`, so don't commit it.
+**Toolchain:** Gowin FPGA Designer. The author used 1.9.8.03 Education; 1.9.12.04 (installed at `C:\Gowin\Gowin_V1.9.12.04_x64`) builds it as well. Headless build, about 1.5 minutes:
+```
+C:\Gowin\Gowin_V1.9.12.04_x64\IDE\bin\gw_sh.exe hdmi_out_time_sleuth\build.tcl
+```
+`build.tcl` opens `hdmi_out.gprj`, sets the top module (`lagtester`) and SystemVerilog mode, then runs synthesis and place & route. Both settings are required and are not stored in the `.gprj`: the sources use `package`, `typedef struct packed`, `const`, `import`, `task` despite the `.v` extension, and several unreferenced modules would confuse top-module detection. In the GUI, open the `.gprj` and set the same two options. Output: `hdmi_out_time_sleuth/impl/pnr/hdmi_out.fs` (`impl/` is gitignored). Every build also rewrites the tracked `hdmi_out.gprj.user`; revert it before committing.
 
-The sources use SystemVerilog constructs (`package`, `typedef struct packed`, `const`, `import`, `task`) despite the `.v` extension, so the project's synthesis language setting must be SystemVerilog.
+Reports worth reading after a build: `impl/pnr/hdmi_out.rpt.txt` (resources, about 50% logic), `impl/pnr/hdmi_out.tr` (timing, text), `impl/pnr/hdmi_out.pin.html` (pins and bank voltages). The synthesis warnings about duplicate `VIDEO_MODE_*` declarations, truncations and PLL clocks are all pre-existing.
+
+**Timing is marginal by design** in the 74.25 MHz pixel domain: `videogen.v` picks one bit out of the 512-bit text line (`pos1..pos4`) in a single cycle, eight LUT levels. With Gowin 1.9.12.04 upstream `main` fails setup by about 3.4 ns on 4 endpoints and the button branch by 0.06 ns on 2, yet the released firmware works on hardware. `dk_video_fp.cst` is the author's floorplan attempt at this. Only chase it if the display shows glitches; the fix would be a two-stage mux with one extra register stage on the `text_area*` flags.
 
 **Flash (no driver needed, USB-C):**
 ```
 openFPGALoader -b tangnano4k -f hdmi_out_time_sleuth/impl/pnr/hdmi_out.fs
 ```
-Release zips also ship a `load_720p.cmd` for Windows; neither it nor the `firmware/` folder is in this repo.
+or Gowin's own `Programmer\bin\programmer_cli.exe` with `--device GW1NSR-4C --fsFile <bitstream>` and `--run 2` (SRAM only, lost at power-off) or `--run 5` (embedded flash). Release zips also ship a `load_720p.cmd` for Windows; neither it nor the `firmware/` folder is in this repo.
 
-There is no Makefile, Tcl build script, or simulation testbench.
+There is no simulation testbench.
 
 ## Which files are actually built
 
